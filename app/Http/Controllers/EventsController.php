@@ -10,7 +10,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use App\Models\Workshop;
-
+use Carbon\Carbon;
 class EventsController extends BaseController
 {
     public function getWarmupEvents() {
@@ -183,6 +183,23 @@ class EventsController extends BaseController
      */
 
     public function getFutureEventsWithWorkshops() {
-        throw new \Exception('implement in coding task 2');
+
+       $events= Event::with(['workshops' => function($query)
+        {
+            $query->where('start', '>', Carbon::now()->format('Y-m-d'));
+         
+        }])->get();
+        $futureEvents=[];
+        foreach($events->all() as $key=>$event){
+            if(count($event->getrelations()['workshops']->all())>0){
+            $myEvent=$event->getOriginal();
+            $workshop = $event->getrelations()['workshops']->all();
+            $myEvent['workshops'] = $workshop;
+            $futureEvents[]= $myEvent;
+            }
+        
+        }
+        return $futureEvents;
+
     }
 }
